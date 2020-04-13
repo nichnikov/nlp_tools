@@ -24,6 +24,7 @@ for file_name in sinonims_files:
 
 ngrams = [list(zip(list(ngrams_df["ngrams"]), list(ngrams_df["token"])))]
 
+'''
 model = {"model_name": "LSI_SIM_model01",
         "model_type" : "lsi",
         "etalons" : {
@@ -37,12 +38,12 @@ model = {"model_name": "LSI_SIM_model01",
         "rules_algorithms" : {"lsi": object},
         "texts_algorithms" : {},
         "tokenizer" : "SimpleTokenizer"}
-
  
 with open (os.path.join(models_rout, 'fast_answrs', "lsi_model.pickle"), "bw") as f:
     pickle.dump(model, f)
+'''
 
-model = {"model_name": "Include_Add_model",
+model = {"model_name": "Include_And_model",
         "model_type" : "simple_rules",
         "etalons" : {
         "rules" : ["include_and"]*len(list(lingv_rules_df["words"])),
@@ -61,7 +62,6 @@ with open (os.path.join(models_rout, 'fast_answrs', "include_and_model.pickle"),
     pickle.dump(model, f)
 
 
-#модель для 
 model = {"model_name": "intersec_share_model",
         "model_type" : "simple_rules",
         "etalons" : {
@@ -84,15 +84,11 @@ with open (os.path.join(models_rout, 'fast_answrs', "intersec_share_model.pickle
 for i in model:
     print(i)
 
-with open (os.path.join(models_rout, 'fast_answrs', "lsi_model.pickle"), "bw") as f:
-    pickle.dump(model, f)
-
-
 from keras.models import load_model
 from gensim.models.doc2vec import Doc2Vec
 
-d2v_model = Doc2Vec.load(os.path.join(models_rout, 'for_model_creator', 'bss_doc2vec_model'))
-nn_model = load_model(os.path.join(models_rout, 'for_model_creator', 'siamese_model_d2v_lstm.h5'))
+d2v_model = Doc2Vec.load(os.path.join(models_rout, 'lingv_models', 'bss_doc2vec_model'))
+nn_model = load_model(os.path.join(models_rout, 'lingv_models', 'siamese_model_d2v_lstm.h5'))
 
 model = {"model_name": "siamese_lstm_d2v_bss01",
         "model_type" : "siamese_lstm_d2v",
