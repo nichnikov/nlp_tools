@@ -224,14 +224,14 @@ class TokenizerApply(AbstractTokenizer):
         return self.tnzr.model_tokenize()
 
     def texts_processing(self, incoming_text):
-        return self.tnzr.txts_processing(incoming_text)
+        return self.tnzr.texts_processing(incoming_text)
                 
 
 if __name__ == "__main__":
     data_rout = r'./data'
     models_rout = r'./models'
     
-    with open(os.path.join(models_rout, "include_and_model.pickle"), "br") as f:
+    with open(os.path.join(models_rout, "fast_answrs", "include_and_model.pickle"), "br") as f:
         model = pickle.load(f)
     
     smpltk = SimpleTokenizer(Loader(model)) 

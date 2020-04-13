@@ -40,12 +40,12 @@ class Loader(AbstractLoader):
                 "etalons", "texts", "coeff", "tags", "lingvo", 
                 "rules_algorithms", "texts_algorithms", "tokenizer"],  ("наименования входящей модели не соответствуют ожиданию класса Loader")
 
-        assert incoming_model["model_type"] in ["siamese_lstm_d2v", "include_and", "lsi", "intersec_share"], ("тип модели не соответствует ожиданию класса Loader")    
+        assert incoming_model["model_type"] in ["siamese_lstm_d2v", "simple_rules", "lsi", "intersec_share"], ("тип модели не соответствует ожиданию класса Loader")    
 
         etalons_dict_names = [nm for nm in incoming_model["etalons"]]
         # возвращает эталоны, к которым применяется правило (проверяет их на соответствие соглашению)
         for nm in etalons_dict_names:
-            assert nm in ["texts", "coeff", "tags"], ("имена словаря etalons не соответствуют ожиданиям класса Loader")
+            assert nm in ["rules", "texts", "coeff", "tags"], ("имена словаря etalons не соответствуют ожиданиям класса Loader")
 
         return incoming_model
 
@@ -144,7 +144,7 @@ if __name__ == "__main__":
     data_rout = r'./data'
     models_rout = r'./models'
 
-    with open(os.path.join(models_rout, "lsi_model.pickle"), "br") as f:
+    with open(os.path.join(models_rout, "fast_answrs","include_and_model.pickle"), "br") as f:
         model = pickle.load(f)
     
     ld = Loader(model)

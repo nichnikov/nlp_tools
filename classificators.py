@@ -41,7 +41,7 @@ class SimpleRules(AbstractRules):
     def rules_apply(self, texts):
         decisions = []
         # применим правило к токенизированным текстам:
-        for num, tknz_tx in enumerate(self.tknzr.txts_processing(texts)):
+        for num, tknz_tx in enumerate(self.tknzr.texts_processing(texts)):
             decisions_temp = []
             unique_tags = list(set(self.tknz_model.application_field["tags"]))
             for tg in unique_tags:
@@ -197,16 +197,16 @@ if __name__ == "__main__":
     models_rout = r'./models'
 
     
-    with open(os.path.join(models_rout, "include_and_model.pickle"), "br") as f:
+    with open(os.path.join(models_rout, "fast_answrs", "include_and_model.pickle"), "br") as f:
         model1 = pickle.load(f)
     
-    with open(os.path.join(models_rout, "intersec_share_model.pickle"), "br") as f:
+    with open(os.path.join(models_rout, "fast_answrs", "intersec_share_model.pickle"), "br") as f:
         model2 = pickle.load(f)
 
-    with open(os.path.join(models_rout, "siamese_lstm_d2v_bss.pickle"), "br") as f:
+    with open(os.path.join(models_rout, "fast_answrs", "siamese_lstm_d2v_bss.pickle"), "br") as f:
         model3 = pickle.load(f)
 
-    with open(os.path.join(models_rout, "tax_demands_simple_model.pickle"), "br") as f:
+    with open(os.path.join(models_rout, "tax_tags", "tax_demands_simple_model.pickle"), "br") as f:
         model4 = pickle.load(f)
     #tx = ["парит летит воздушный судно", "мой дядя самых чеСТных Правил ЮЛя новый год Фи ТАм котОРый", "солнце встает над рекой Хуанхе", 'упрощенная бухгалтерская отчетность кто сдает', "усн ип срок"]
     #tx = ["кто имеет право сдавать упрощенную бухгалтерскую отчетность", "кто сдает упрощенную отчетность", "зеленый крокодил"]
