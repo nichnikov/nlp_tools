@@ -141,13 +141,22 @@ class SiameseNnDoc2VecClassifier(AbstractRules):
             tx_tensor = tx_tensor.reshape(vcs_arr.shape[0], vcs_arr.shape[1], 1)
             vcs_arr = vcs_arr.reshape(vcs_arr.shape[0], vcs_arr.shape[1], 1)
             with graph.as_default():
-                scores = self.model.rules_algorithms["siamese_lstm_model"].predict([tx_tensor, vcs_arr])
+                scores = self.model.classificator_algorithms["siamese_lstm_model"].predict([tx_tensor, vcs_arr])
             trues =  [(tg, True) for scr, cf, tg in zip(scores, coeffs, tags) if scr < cf]
             falses = [(tg, False) for scr, cf, tg in zip(scores, coeffs, tags) if scr > cf]
             decisions.append((num, trues+falses))
 
         return decisions
 
+class LsiClassifier(AbstractRules):
+    def __init__(self, loader_obj):
+        self.model_types = [("lsi", None)]
+        self.model = loader_obj
+        self.tknz = TokenizerApply(self.model)
+        self.tkz_model = self.tknz.model_tokenize()
+
+    pass
+    
 
 # Основное время тратится на загрузку лемматизатора и на лемматизацию эталонов
 class ModelsChain(AbstractRules):

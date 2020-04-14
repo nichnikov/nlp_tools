@@ -8,7 +8,7 @@ from keras import backend as K
 class AbstractLoader(ABC):
     def __init__(self):
         self.model_type = None
-        self.rules_algorithms = None
+        self.classificator_algorithms = None
         self.texts_algorithms = None
         self.dictionaries = None
         self.tokenizer_type = None
@@ -21,7 +21,7 @@ class Loader(AbstractLoader):
         
         self.model_type = self.in_model["model_type"] # возвращает ключ модели (имя модели) по ключу остальные объекты "понимают" что за функции им нужно запускать                
         
-        self.rules_algorithms = self.in_model["rules_algorithms"] # возвращает модели для правил
+        self.classificator_algorithms = self.in_model["classificator_algorithms"] # возвращает модели для правил
         
         self.texts_algorithms = self.in_model["texts_algorithms"] # возвращает модели для обработки текстов (например, Word2Vec - модели векторизации)
         
@@ -38,7 +38,7 @@ class Loader(AbstractLoader):
         for nm in names:
             assert nm in ["model_name", "model_type", 
                 "etalons", "texts", "coeff", "tags", "lingvo", 
-                "rules_algorithms", "texts_algorithms", "tokenizer"],  ("наименования входящей модели не соответствуют ожиданию класса Loader")
+                "classificator_algorithms", "texts_algorithms", "tokenizer"],  ("наименования входящей модели не соответствуют ожиданию класса Loader")
 
         assert incoming_model["model_type"] in ["siamese_lstm_d2v", "simple_rules", "lsi", "intersec_share"], ("тип модели не соответствует ожиданию класса Loader")    
 

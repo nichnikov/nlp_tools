@@ -187,7 +187,7 @@ class Doc2VecTokenizer(AbstractTokenizer):
         self.simple_tokenize_model = self.simple_tokenizer.model_tokenize()
         
     def texts_processing(self, texts):
-        initial_tokenize_texts = self.simple_tokenizer.txts_processing(texts)
+        initial_tokenize_texts = self.simple_tokenizer.texts_processing(texts)
         return [self.simple_tokenize_model.texts_algorithms["d2v_model"].infer_vector(tk_tx) for tk_tx in initial_tokenize_texts]
 
     def model_tokenize(self):
@@ -204,14 +204,48 @@ class Doc2VecTokenizer(AbstractTokenizer):
         tkn_model.application_field = tkn_apl_field
         return tkn_model
 
-        #pass
+# с обнавлением словарей и без
+class LsiTokenizer(AbstractTokenizer):
+    def __init__(self, loader_obj):
+        # получим все тексты с первоночальной токенизацией (лемматизация, словари и т. п.):
+        self.model = loader_obj
+        self.simple_tokenizer = SimpleTokenizer(self.model)
+        self.simple_tokenize_model = self.simple_tokenizer.model_tokenize()
+
+    # построение LSI вектора из произвольного лемматизированного и токенизированного текста
+    def lsi_text2vector(self, texts : [[]]):
+        lsi_vectors = []
+        for text in texts:
+            txt_corp = self.model.texts_algorithms["lsi"]["dictionary"].doc2bow(text)
+            txt_vect = self.model.texts_algorithms["lsi"]["model"][txt_corp]
+            lsi_vectors.append(txt_vect)
+        return lsi_vectors
+        
+    def texts_processing(self, texts):
+        initial_tokenize_texts = self.simple_tokenizer.texts_processing(texts)
+        return self.lsi_text2vector(initial_tokenize_texts)
+
+    def model_tokenize(self):
+        tkn_model = copy.copy(self.simple_tokenize_model)
+        # токенизация словарей
+        None
+        # токенизация эталонов
+        tkn_apl_field = {}
+        for name in tkn_model.application_field:
+            if name == "texts":
+                tkn_model.application_field["texts"] = self.lsi_text2vector(tkn_model.application_field["texts"])
+            else:
+                tkn_apl_field[name] = self.simple_tokenize_model.application_field[name]
+        tkn_model.application_field = tkn_apl_field
+        return tkn_model
 
 # класс, получающий на вход модель и умеющий ее токенизировать и токенизировать тексты в соответствие с моделью
 # данный класс "знает", какой токенизатор какой модели соответствует и умеет применять нужный
 # пользователи, которым нужна токенизация (токенизированные тексты и модели) имеют дело с этим классом
 class TokenizerApply(AbstractTokenizer):
     def __init__(self, loader_obj):
-        self.tknz_types = [("SimpleTokenizer", SimpleTokenizer), ("Doc2VecTokenizer", Doc2VecTokenizer)]        
+        self.tknz_types = [("SimpleTokenizer", SimpleTokenizer), ("Doc2VecTokenizer", Doc2VecTokenizer), 
+                    ("LsiTokenizer", LsiTokenizer)]        
         self.model = loader_obj    
         # проверка соответствия имени 
         #assert self.model.tokenizer_type in [x[0] for x in self.tknz_types], ("имя tokenizer_type в классе Loader не соответствует именам self.tknz_types")
@@ -231,29 +265,27 @@ if __name__ == "__main__":
     data_rout = r'./data'
     models_rout = r'./models'
     
+    """
     with open(os.path.join(models_rout, "fast_answrs", "include_and_model.pickle"), "br") as f:
-        model = pickle.load(f)
-    
+        model = pickle.load(f)    
     smpltk = SimpleTokenizer(Loader(model)) 
-
-    #for a, b in [('a', 'b')]:
-    #    print(a, b)
+    """
 
     txts = ["упрощенная бухгалтерская отчетность кто сдает Фи ТАм котОРый али бы", "кто должен сдавать аудиторское заключение", "кто должен подписывать справки", "парит летит воздушный судно"]
 
+    with open(os.path.join(models_rout, "fast_answrs", "lsi_model.pickle"), "br") as f:
+        model = pickle.load(f)
+
     '''
-    for dic in smpltk.dictionaries_lemm:
-        for n in dic:
-            print(n)
-            print(dic[n][0][:5])
-            #if n != "workwords":
-            #    print(dic[n][0][:5])
-            #else:
-            #    print(dic[n])
-    '''
+    lsi_tkz = LsiTokenizer(Loader(model))
+    t1 = time.time()
+    tk_m = lsi_tkz.model_tokenize()
+    print(time.time() - t1)
     
-    tk_m = smpltk.model_tokenize()
-    #print(tk_m.application_field)
-    #print(smpltk.dictionaries_lemm)
-    #print(smpltk.txts_processing(txts))
-    print(tk_m.dictionaries)
+    tk_txt = lsi_tkz.texts_processing(txts)
+    print(tk_txt)
+    print(len(tk_txt))
+    '''
+
+    tk_appl = TokenizerApply(Loader(model))
+    print(tk_appl.texts_processing(txts))

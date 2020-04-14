@@ -24,25 +24,6 @@ for file_name in sinonims_files:
 
 ngrams = [list(zip(list(ngrams_df["ngrams"]), list(ngrams_df["token"])))]
 
-'''
-model = {"model_name": "LSI_SIM_model01",
-        "model_type" : "lsi",
-        "etalons" : {
-        "texts" : list(lingv_rules_df["words"]), 
-        "coeff" : list(lingv_rules_df["coeff"]), 
-        "tags" : list(lingv_rules_df["tag"])},            
-        "lingvo": [{"sinonims" :  sinonims, "tokenize" : True}, 
-        {"ngrams" : ngrams, "tokenize" : False},                
-        {"stopwords" : [list(stopwords_df['words'])], "tokenize" : True},
-        {"workwords" : [[]], "tokenize" : True}],
-        "rules_algorithms" : {"lsi": object},
-        "texts_algorithms" : {},
-        "tokenizer" : "SimpleTokenizer"}
- 
-with open (os.path.join(models_rout, 'fast_answrs', "lsi_model.pickle"), "bw") as f:
-    pickle.dump(model, f)
-'''
-
 model = {"model_name": "Include_And_model",
         "model_type" : "simple_rules",
         "etalons" : {
@@ -54,7 +35,7 @@ model = {"model_name": "Include_And_model",
         {"ngrams" : ngrams, "tokenize" : False},                
         {"stopwords" : [list(stopwords_df['words'])], "tokenize" : True},
         {"workwords" : [[]], "tokenize" : True}],
-        "rules_algorithms" : {},
+        "classificator_algorithms" : {},
         "texts_algorithms" : {},
         "tokenizer" : "SimpleTokenizer"}
 
@@ -73,16 +54,12 @@ model = {"model_name": "intersec_share_model",
         {"ngrams" : ngrams, "tokenize" : False},                
         {"stopwords" : [list(stopwords_df['words'])], "tokenize" : True},
         {"workwords" : [[]], "tokenize" : True}],
-        "rules_algorithms" : {},
+        "classificator_algorithms" : {},
         "texts_algorithms" : {},
         "tokenizer" : "SimpleTokenizer"}
 
 with open (os.path.join(models_rout, 'fast_answrs', "intersec_share_model.pickle"), "bw") as f:
     pickle.dump(model, f)
-
-
-for i in model:
-    print(i)
 
 from keras.models import load_model
 from gensim.models.doc2vec import Doc2Vec
@@ -100,7 +77,7 @@ model = {"model_name": "siamese_lstm_d2v_bss01",
         {"ngrams" : ngrams, "tokenize" : False},                
         {"stopwords" : [list(stopwords_df['words'])], "tokenize" : True},
         {"workwords" : [[]], "tokenize" : True}],
-        "rules_algorithms" : {"siamese_lstm_model" : nn_model},
+        "classificator_algorithms" : {"siamese_lstm_model" : nn_model},
         "texts_algorithms" : {"d2v_model" : d2v_model},
         "tokenizer" : "Doc2VecTokenizer"}
 
@@ -129,7 +106,7 @@ model = {"model_name": "tax_demands_simple_model",
         {"ngrams" : [[]], "tokenize" : False},                
         {"stopwords" : [[]], "tokenize" : True},
         {"workwords" : [[]], "tokenize" : True}],
-        "rules_algorithms" : None,
+        "classificator_algorithms" : None,
         "texts_algorithms" : None,
         "tokenizer" : "SimpleTokenizer"}
 
@@ -139,6 +116,3 @@ with open (os.path.join(models_rout, 'tax_tags', "tax_demands_simple_model.pickl
 
 for i in model:
     print(i)
-
-#print(ngrams[:10])
-#print(["intersec_share"]*10)
