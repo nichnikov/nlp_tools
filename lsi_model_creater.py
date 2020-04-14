@@ -63,7 +63,8 @@ model = {"model_name": "LSI_SIM_model",
         {"stopwords" : [list(stopwords_df['words'])], "tokenize" : True},
         {"workwords" : [[]], "tokenize" : True}],
         "classificator_algorithms" : {},
-        "texts_algorithms" : {"lsi": lsi_dict},
+        #"texts_algorithms" : {"lsi": lsi_dict},
+        "texts_algorithms" : lsi_dict,
         "tokenizer" : "LsiTokenizer"}
  
 with open (os.path.join(models_rout, 'fast_answrs', "lsi_model.pickle"), "bw") as f:

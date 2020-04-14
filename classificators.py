@@ -10,6 +10,7 @@ from texts_processors import *
 import sys
 import tensorflow as tf
 from keras.optimizers import Adam
+from gensim.similarities import Similarity
 
 # объект SimpleTokenizer загружает в себя параметры, соответствующие модели и в дальнейшем в рамках этой модели
 # в соответствие с загруженными параметрами происходит токенизация любых текстов
@@ -23,6 +24,10 @@ class AbstractRules(ABC):
         # перменная, описывающая, какие модели входят в класс
         self.model_types = []
 
+    # должен возвращать структуру типа: [(num, [(tag, True), ...]), ...]
+    # num - номер текста
+    # tag - номер текста
+    # True / False - результат для данного тега и данного текста
     @abstractmethod
     def rules_apply(self, text : []):
         pass
@@ -122,9 +127,9 @@ class SiameseNnDoc2VecClassifier(AbstractRules):
         self.tkz_model = self.tknz.model_tokenize()
     
     def rules_apply(self, texts):
-        session = keras.backend.get_session()
-        init = tf.global_variables_initializer()
-        session.run(init)
+        #session = keras.backend.get_session()
+        #init = tf.global_variables_initializer()
+        #session.run(init)
         text_vectors = self.tknz.txts_processing(texts)
         et_vectors = self.tkz_model.application_field["texts"]
         coeffs = self.tkz_model.application_field["coeff"]
@@ -155,14 +160,28 @@ class LsiClassifier(AbstractRules):
         self.tknz = TokenizerApply(self.model)
         self.tkz_model = self.tknz.model_tokenize()
 
-    pass
-    
+    def rules_apply(self, texts):
+        text_vectors = self.tknz.texts_processing(texts)
+        et_vectors = self.tkz_model.application_field["texts"]
+        coeffs = self.tkz_model.application_field["coeff"]
+        tags = self.tkz_model.application_field["tags"]
+
+        index = Similarity(None, et_vectors, num_features=self.model.texts_algorithms["num_topics"]) 
+        
+        texts_tags_similarity = []
+        for num, text_vector in enumerate(text_vectors):
+            #print(sorted(list(zip(tags, index[text_vector], coeffs)), reverse=True, key=lambda x : x[1]))
+            trues = [(tg, True) for tg, scr, cf in list(zip(tags, index[text_vector], coeffs)) if scr > cf]
+            falses = [(tg, False) for tg, scr, cf in list(zip(tags, index[text_vector], coeffs)) if scr < cf]
+            texts_tags_similarity.append((num, trues + falses))
+        return texts_tags_similarity
+                 
 
 # Основное время тратится на загрузку лемматизатора и на лемматизацию эталонов
 class ModelsChain(AbstractRules):
     def __init__(self, models):
         self.models = models
-        self.classes = [SimpleRules, SiameseNnDoc2VecClassifier]
+        self.classes = [SimpleRules, SiameseNnDoc2VecClassifier, LsiClassifier]
         self.classes_models = self.classes_modles_fill()
 
     def classes_modles_fill(self):
@@ -172,7 +191,6 @@ class ModelsChain(AbstractRules):
                 try:
                     class_with_model = Class(model)
                     if model.model_type in [x[0] for x in class_with_model.model_types]:
-                        #work_classes.append(class_with_model)
                         classes_with_model.append((class_with_model, model))
                 except:
                     print("не удалось сопоставить классы с моделями", Class, model.model_type)
@@ -196,9 +214,7 @@ class ModelsChain(AbstractRules):
                 true_tags = [tx_res_tpl[0] for tx_res_tpl in tx_result[1] if tx_res_tpl[1] == True]                
                 true_rules_result.append(true_tags)
             results = [intersection(x, y)  for x, y in zip(results, true_rules_result)]
-        return results
-
-        
+        return results        
 
 
 if __name__ == "__main__":
@@ -217,10 +233,20 @@ if __name__ == "__main__":
 
     with open(os.path.join(models_rout, "tax_tags", "tax_demands_simple_model.pickle"), "br") as f:
         model4 = pickle.load(f)
+
+    with open(os.path.join(models_rout, "fast_answrs", "lsi_model.pickle"), "br") as f:
+        model5 = pickle.load(f)
+
+    tx = ["кто сдает упрощенную отчетность", "какой срок уплаты с доходов", "срок уплаты усн доходы"]
+    mdschain = ModelsChain([Loader(model5)])
+    
+    t1 = time.time()    
+    rt_t = mdschain.rules_apply(tx)
+    print("model5:", rt_t, time.time() - t1)
+
     #tx = ["парит летит воздушный судно", "мой дядя самых чеСТных Правил ЮЛя новый год Фи ТАм котОРый", "солнце встает над рекой Хуанхе", 'упрощенная бухгалтерская отчетность кто сдает', "усн ип срок"]
     #tx = ["кто имеет право сдавать упрощенную бухгалтерскую отчетность", "кто сдает упрощенную отчетность", "зеленый крокодил"]
 
-    tx = ["кто сдает упрощенную отчетность"]
     #rt_t = models_chain_apply([Loader(model3), Loader(model1), Loader(model2)], tx)
 
     """а теперь, если перейти от функции к классам (оценка времени):"""
@@ -250,25 +276,10 @@ if __name__ == "__main__":
     t1 = time.time()
     rt_t = mdschain.rules_apply(tx)
     print("model2+model3:", rt_t, time.time() - t1)
-    '''
 
     mdschain = ModelsChain([Loader(model4)])
     tx = ["в ходе проведения камеральной налоговой проверки на основе Расчет сумм налога на доходы физических лиц, исчисленных и удержанных налоговым агентом (форма № 6-НДФЛ) нулевая"]
     t1 = time.time()
     rt_t = mdschain.rules_apply(tx)
     print("model4:", rt_t, time.time() - t1)
-
-
-    '''
-    mdschain = ModelsChain([Loader(model2), Loader(model3)])
-
-    t1 = time.time()
-    rt_t = mdschain.rules_apply(tx)
-
-    print("model2, model3:", rt_t, time.time() - t1)
-
-    #print(SimpleTokenizer(Loader(model)).txts_processing(tx))
-    #simplclass = SimpleRules(Loader(model))
-
-    #print(simplclass.rules_apply(tx))
     '''

@@ -216,8 +216,8 @@ class LsiTokenizer(AbstractTokenizer):
     def lsi_text2vector(self, texts : [[]]):
         lsi_vectors = []
         for text in texts:
-            txt_corp = self.model.texts_algorithms["lsi"]["dictionary"].doc2bow(text)
-            txt_vect = self.model.texts_algorithms["lsi"]["model"][txt_corp]
+            txt_corp = self.model.texts_algorithms["dictionary"].doc2bow(text)
+            txt_vect = self.model.texts_algorithms["model"][txt_corp]
             lsi_vectors.append(txt_vect)
         return lsi_vectors
         
@@ -233,7 +233,7 @@ class LsiTokenizer(AbstractTokenizer):
         tkn_apl_field = {}
         for name in tkn_model.application_field:
             if name == "texts":
-                tkn_model.application_field["texts"] = self.lsi_text2vector(tkn_model.application_field["texts"])
+                tkn_apl_field[name] = self.lsi_text2vector(tkn_model.application_field["texts"])
             else:
                 tkn_apl_field[name] = self.simple_tokenize_model.application_field[name]
         tkn_model.application_field = tkn_apl_field
