@@ -125,7 +125,6 @@ for file_name in sinonims_files:
 
 ngrams = [list(zip(list(ngrams_df["ngrams"]), list(ngrams_df["token"])))]
 
-
 model = {"model_name": "kosgu_include_and_model",
         "model_type" : "simple_rules",
         "etalons" : {
@@ -142,6 +141,28 @@ model = {"model_name": "kosgu_include_and_model",
         "tokenizer" : "SimpleTokenizer"}
 
 with open (os.path.join(models_rout, 'fast_answrs', "kosgu_include_and_model.pickle"), "bw") as f:
+    pickle.dump(model, f)
+
+
+#---------------------------------------------------------- test
+lingv_rules_df = pd.read_csv(os.path.join(data_rout, 'kosgu_data', 'lingv_rules_test.csv'))
+
+model = {"model_name": "kosgu_include_and_model",
+        "model_type" : "simple_rules",
+        "etalons" : {
+        "rules" : list(lingv_rules_df["rules"]),
+        "texts" : list(lingv_rules_df["words"]), 
+        "tags" : list(lingv_rules_df["tag"]),
+        "coeff" : list(lingv_rules_df["coeff"])},            
+        "lingvo": [{"sinonims" :  sinonims, "tokenize" : True}, 
+        {"ngrams" : ngrams, "tokenize" : False},                
+        {"stopwords" : [list(stopwords_df['words'])], "tokenize" : True},
+        {"workwords" : [[]], "tokenize" : True}],
+        "classificator_algorithms" : {},
+        "texts_algorithms" : {},
+        "tokenizer" : "SimpleTokenizer"}
+
+with open (os.path.join(models_rout, 'fast_answrs', "kosgu_incl_and_test_model.pickle"), "bw") as f:
     pickle.dump(model, f)
 
 

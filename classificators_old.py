@@ -9,7 +9,6 @@ from utility import *
 from texts_processors import *
 import sys
 import tensorflow as tf
-from itertools import groupby
 from keras.optimizers import Adam
 from gensim.similarities import Similarity
 
@@ -49,15 +48,15 @@ class SimpleRules(AbstractRules):
         # применим правило к токенизированным текстам:
         for num, tknz_tx in enumerate(self.tknzr.texts_processing(texts)):
             decisions_temp = []
-            model_params = list(zip(self.tknz_model.application_field["tags"], self.tknz_model.application_field["rules"], self.tknz_model.application_field["texts"], self.tknz_model.application_field["coeff"]))
-            # группировка правил с одинаковым тегом (чтобы не перебирать правила n^2 раз: скорость выполнения снижена с 1,5 сек до 0,008 сек)
-            model_params_grouped = [(x, list(y)) for x, y in groupby(sorted(model_params, key=lambda x: x[0]), key=lambda x : x[0])]
-            # оценка результатов применения правил для каждого тега:
-            for group, rules_list in model_params_grouped:
+            unique_tags = list(set(self.tknz_model.application_field["tags"]))
+            model_param_list = list(zip(self.tknz_model.application_field["rules"], self.tknz_model.application_field["texts"], self.tknz_model.application_field["tags"], self.tknz_model.application_field["coeff"]))
+            for tg in unique_tags:
                 decision = True
-                for tg, rule, tknz_etalon, coeff in rules_list:
+                #for rule, tknz_etalon, tag, coeff in zip(self.tknz_model.application_field["rules"], self.tknz_model.application_field["texts"], self.tknz_model.application_field["tags"], self.tknz_model.application_field["coeff"]):
+                for rule, tknz_etalon, tag, coeff in model_param_list:
+                    if tag == tg:
                         decision = decision and self.functions_dict[rule](tknz_etalon, tknz_tx, coeff)
-                decisions_temp.append((group, decision))
+                decisions_temp.append((tg, decision))
             decisions.append((num, decisions_temp))
         return decisions
 
@@ -226,7 +225,7 @@ if __name__ == "__main__":
     models_rout = r'./models'
 
     
-    with open(os.path.join(models_rout, "fast_answrs", "kosgu_incl_and_test_model.pickle"), "br") as f:
+    with open(os.path.join(models_rout, "fast_answrs", "kosgu_include_and_model.pickle"), "br") as f:
         model1 = pickle.load(f)
     
     
