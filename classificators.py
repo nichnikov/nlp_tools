@@ -218,7 +218,6 @@ class ModelsChain(AbstractRules):
             results = [intersection(x, y)  for x, y in zip(results, true_rules_result)]
         return results        
 
-
 if __name__ == "__main__":
     data_rout = r'./data'
     models_rout = r'./models'
