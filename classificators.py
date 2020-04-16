@@ -52,7 +52,7 @@ class SimpleRules(AbstractRules):
             model_params = list(zip(self.tknz_model.application_field["tags"], self.tknz_model.application_field["rules"], self.tknz_model.application_field["texts"], self.tknz_model.application_field["coeff"]))
             # группировка правил с одинаковым тегом (чтобы не перебирать правила n^2 раз: скорость выполнения снижена с 1,5 сек до 0,008 сек)
             model_params_grouped = [(x, list(y)) for x, y in groupby(sorted(model_params, key=lambda x: x[0]), key=lambda x : x[0])]
-            # оценка результатов применения правил для каждого тега:
+            # оценка результатов применения правил для каждого тега (в каждой группе):
             for group, rules_list in model_params_grouped:
                 decision = True
                 for tg, rule, tknz_etalon, coeff in rules_list:
@@ -132,7 +132,7 @@ class SiameseNnDoc2VecClassifier(AbstractRules):
         #session = keras.backend.get_session()
         #init = tf.global_variables_initializer()
         #session.run(init)
-        text_vectors = self.tknz.txts_processing(texts)
+        text_vectors = self.tknz.texts_processing(texts)
         et_vectors = self.tkz_model.application_field["texts"]
         coeffs = self.tkz_model.application_field["coeff"]
         tags = self.tkz_model.application_field["tags"]
@@ -172,7 +172,6 @@ class LsiClassifier(AbstractRules):
         
         texts_tags_similarity = []
         for num, text_vector in enumerate(text_vectors):
-            #print(sorted(list(zip(tags, index[text_vector], coeffs)), reverse=True, key=lambda x : x[1]))
             trues = [(tg, True) for tg, scr, cf in list(zip(tags, index[text_vector], coeffs)) if scr > cf]
             falses = [(tg, False) for tg, scr, cf in list(zip(tags, index[text_vector], coeffs)) if scr < cf]
             texts_tags_similarity.append((num, trues + falses))
@@ -212,7 +211,6 @@ class ModelsChain(AbstractRules):
         for Class_with_model, model in self.classes_models:
             t1 = time.time()
             cls_results = Class_with_model.rules_apply(texts)
-            print("Class_with_model.rules_apply(texts):", time.time() - t1)
             true_rules_result = []
             for tx_result in cls_results:
                 true_tags = [tx_res_tpl[0] for tx_res_tpl in tx_result[1] if tx_res_tpl[1] == True]                

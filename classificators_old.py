@@ -195,7 +195,7 @@ class ModelsChain(AbstractRules):
                         classes_with_model.append((class_with_model, model))
                 except:
                     print("не удалось сопоставить классы с моделями", Class, model.model_type)
-                    sys.exit(1)
+                    #sys.exit(1)
         return classes_with_model
         
     # функция, применяющая набор моделей (цепочку моделей) к входящему тексту
