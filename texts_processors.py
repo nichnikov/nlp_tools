@@ -1,6 +1,7 @@
-import os, pickle, time, copy
+import os, pickle, time, copy, re
 from abc import ABC, abstractmethod
-from utility import *
+from utility import Loader, replaceAscriptor
+from pymystem3 import Mystem
 
 # абстрактный класс, определяющие методы для токенизаторов
 class AbstractTokenizer(ABC):
@@ -121,6 +122,13 @@ class TextsProcessor(TextsLematizer):
         if stopwords_list != []:
             lemm_tx = [[w for w in tx if [w] in workwords_list] for tx in lemm_tx]
         return lemm_tx
+
+
+# объект SimpleTokenizer загружает в себя параметры, соответствующие модели и в дальнейшем в рамках этой модели
+# в соответствие с загруженными параметрами происходит токенизация любых текстов
+# преимущество объектного подхода перед функцией - объект создается один раз под модель (словари загружаются и обрабатываются один раз)
+# затем многократно используются (данные и методы лемматизации заключены в объект)
+# в случае использования функций, пришлось бы создавать отдельные переменные для хранения загруженных параметров
 
 # простой токенизатор (лемматизирует словари и применяет лемматизацию и словари к входящим текстам)
 class SimpleTokenizer(AbstractTokenizer, TextsProcessor):    
@@ -273,7 +281,7 @@ if __name__ == "__main__":
 
     txts = ["упрощенная бухгалтерская отчетность кто сдает Фи ТАм котОРый али бы", "кто должен сдавать аудиторское заключение", "кто должен подписывать справки", "парит летит воздушный судно"]
 
-    with open(os.path.join(models_rout, "fast_answrs", "lsi_model.pickle"), "br") as f:
+    with open(os.path.join(models_rout, "fast_answrs", "bss_lsi_model.pickle"), "br") as f:
         model = pickle.load(f)
 
     '''

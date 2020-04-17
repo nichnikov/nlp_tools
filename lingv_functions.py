@@ -44,7 +44,7 @@ def lsi_model_update(new_texts, **kwargs):
 # Функция 4: формирование частотного словаря для коллекции:
 def frequency_dictionary_create(tknz_texts):
     dict_frequency = defaultdict(int)
-    tokens = [i for i in flatten_all(tknz_texts)]
+    tokens = [i for i in flatten_list(tknz_texts)]
     for token in tokens:
         dict_frequency[token] += 1
 
@@ -89,7 +89,7 @@ def bigrams_dictionary_create(tknz_texts):
     bigrams_candidate_sep = [[(''.join([x[0][0], x[1][0]]), x[0][0], x[1][0]) for x in bg] for bg in bigrams_candidate]
     
     #сделаем список биграмм "плоским"
-    flatit = flatten_all(bigrams_candidate_sep)
+    flatit = flatten_list(bigrams_candidate_sep)
     bigrams_candidate_sep = [x for x in flatit]
     
     #создадим пандас датафрейм из кандидатов в биграммы
@@ -128,7 +128,7 @@ if __name__ == "__main__":
     print(txt_df)
 
     models_rout = r"./models"
-    with open(os.path.join(models_rout, "fast_answrs","include_and_model.pickle"), "br") as f:
+    with open(os.path.join(models_rout, "fast_answrs","bss_include_and_model.pickle"), "br") as f:
         model = pickle.load(f)
     
     smp_tkz = SimpleTokenizer(Loader(model))

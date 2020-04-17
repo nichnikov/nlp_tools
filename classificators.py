@@ -2,22 +2,14 @@
 # https://stackoverflow.com/questions/47115946/tensor-is-not-an-element-of-this-graph
 # https://kobkrit.com/tensor-something-is-not-an-element-of-this-graph-error-in-keras-on-flask-web-server-4173a8fe15e1
 
-import os, pickle, time, sys
+import os, pickle, logging
 import numpy as np
 from abc import ABC, abstractmethod
-from utility import *
-from texts_processors import *
-import sys
+from utility import Loader, intersection, strings_similarities #contrastive_loss
+from texts_processors import TokenizerApply
 import tensorflow as tf
 from itertools import groupby
-from keras.optimizers import Adam
 from gensim.similarities import Similarity
-
-# объект SimpleTokenizer загружает в себя параметры, соответствующие модели и в дальнейшем в рамках этой модели
-# в соответствие с загруженными параметрами происходит токенизация любых текстов
-# преимущество объектного подхода перед функцией - объект создается один раз под модель (словари загружаются и обрабатываются один раз)
-# затем многократно используются (данные и методы лемматизации заключены в объект)
-# в случае использования функций, пришлось бы создавать отдельные переменные для хранения загруженных параметров
 
 
 class AbstractRules(ABC):
@@ -129,9 +121,6 @@ class SiameseNnDoc2VecClassifier(AbstractRules):
         self.tkz_model = self.tknz.model_tokenize()
     
     def rules_apply(self, texts):
-        #session = keras.backend.get_session()
-        #init = tf.global_variables_initializer()
-        #session.run(init)
         text_vectors = self.tknz.texts_processing(texts)
         et_vectors = self.tkz_model.application_field["texts"]
         coeffs = self.tkz_model.application_field["coeff"]
@@ -193,9 +182,9 @@ class ModelsChain(AbstractRules):
                     class_with_model = Class(model)
                     if model.model_type in [x[0] for x in class_with_model.model_types]:
                         classes_with_model.append((class_with_model, model))
-                except:
-                    print("не удалось сопоставить классы с моделями", Class, model.model_type)
-                    sys.exit(1)
+                except Exception as exx:
+                    logging.error('unable to link classes to models: "{}" to "{}"'.format(Class, model.model_type))
+                    logging.error(exx)
         return classes_with_model
         
     # функция, применяющая набор моделей (цепочку моделей) к входящему тексту
@@ -209,7 +198,6 @@ class ModelsChain(AbstractRules):
             results.append(all_tags)
 
         for Class_with_model, model in self.classes_models:
-            t1 = time.time()
             cls_results = Class_with_model.rules_apply(texts)
             true_rules_result = []
             for tx_result in cls_results:
@@ -219,19 +207,54 @@ class ModelsChain(AbstractRules):
         return results        
 
 if __name__ == "__main__":
+    import time
     data_rout = r'./data'
     models_rout = r'./models'
 
     
     with open(os.path.join(models_rout, "fast_answrs", "kosgu_incl_and_test_model.pickle"), "br") as f:
-        model1 = pickle.load(f)
-    
-    
-    tx = ["шпаргалка, чтобы определить квр и косгу для командировочных расходов госучреждений"]
-    mdschain = ModelsChain([Loader(model1)])
-    
-    t1 = time.time()    
-    rt_t = mdschain.rules_apply(tx)
-    print("model4:", rt_t, time.time() - t1)
+        kosgu_incl_and = pickle.load(f)
+
+    with open(os.path.join(models_rout, "fast_answrs", "bss_lsi_model.pickle"), "br") as f:
+        bss_lsi = pickle.load(f)
+
+    with open(os.path.join(models_rout, "fast_answrs", "bss_intersec_share_model.pickle"), "br") as f:
+        bss_intersec = pickle.load(f)
+
+    with open(os.path.join(models_rout, "fast_answrs", "bss_include_and_model.pickle"), "br") as f:
+        bss_include_and = pickle.load(f)
+
+    with open(os.path.join(models_rout, "fast_answrs", "bss_siamese_lstm_d2v.pickle"), "br") as f:
+        bss_siamese = pickle.load(f)
 
     
+    tx = ["шпаргалка, чтобы определить квр и косгу для командировочных расходов госучреждений"]
+    mdschain = ModelsChain([Loader(kosgu_incl_and)])    
+    t1 = time.time()    
+    rt_t = mdschain.rules_apply(tx)
+    print(tx[0], "kosgu_incl_and:", rt_t, time.time() - t1)
+
+    #tx = ["кто может применять упрощенный баланс"]
+    tx = ["упрощенная финансовая отчетность кто сдает"]
+    mdschain = ModelsChain([Loader(bss_lsi)])    
+    t1 = time.time()    
+    rt_t = mdschain.rules_apply(tx)
+    print(tx[0], "bss_lsi:", rt_t, time.time() - t1)
+
+    tx = ["кто может применять упрощенный баланс"]
+    mdschain = ModelsChain([Loader(bss_intersec)])    
+    t1 = time.time()    
+    rt_t = mdschain.rules_apply(tx)
+    print(tx[0], "bss_intersec:", rt_t, time.time() - t1)
+
+    tx = ["кто может не применять ккт"]
+    mdschain = ModelsChain([Loader(bss_include_and)])    
+    t1 = time.time()    
+    rt_t = mdschain.rules_apply(tx)
+    print(tx[0], "bss_include_and:", rt_t, time.time() - t1)
+
+    tx = ["кто может применять упрощенный баланс"]
+    mdschain = ModelsChain([Loader(bss_siamese)])    
+    t1 = time.time()    
+    rt_t = mdschain.rules_apply(tx)
+    print(tx[0], "bss_siamese:", rt_t, time.time() - t1)

@@ -1,21 +1,11 @@
 # здесь будут функции, которые нужны для других объектов
-import os, re, pickle, difflib, keras
-from pymystem3 import Mystem
+import os, pickle, difflib, keras
+#from pymystem3 import Mystem
 from abc import ABC, abstractmethod
 from keras import backend as K
 
-# определяет тип модели для сервиса:
-class AbstractLoader(ABC):
-    def __init__(self):
-        self.model_type = None
-        self.classificator_algorithms = None
-        self.texts_algorithms = None
-        self.dictionaries = None
-        self.tokenizer_type = None
-        self.application_field = None
-
 # данный класс (или функция) должен знать все форматы моделей и уметь их загружать
-class Loader(AbstractLoader):
+class Loader():
     def __init__(self, incoming_model):        
         self.in_model = self.model_load(incoming_model)
         
@@ -51,20 +41,20 @@ class Loader(AbstractLoader):
 
 """ Утилитарные функции над массивами """
 """ Оставляет только базовые элементы сложной (иерархической) структуры """
-def flatten_all(iterable):
+def flatten_list(iterable):
     for elem in iterable:
         if not isinstance(elem, list):
             yield elem
         else:
-            for x in flatten_all(elem):
+            for x in flatten_list(elem):
                 yield x
 
-def flatten_all_tuple(iterable):
+def flatten_tuple(iterable):
     for elem in iterable:
         if not isinstance(elem, tuple):
             yield elem
         else:
-            for x in flatten_all_tuple(elem):
+            for x in flatten_tuple(elem):
                 yield x
 
 
@@ -112,7 +102,7 @@ def intersection(lst1, lst2):
 # лемматизация текстов датафрейма
 # columns_for_change_names - список столбцов (имен столбцов) датафрейма, которые должны быть обработаны
 # changed_columns_names - список столбцов (имен столбцов) датафрейма после обработки
-def df_lemmataze(df, columns_for_change_names = ["text"], changed_columns_names = ["changed_text"]):
+def df_lemmatize(df, columns_for_change_names = ["text"], changed_columns_names = ["changed_text"]):
     assert(len(columns_for_change_names) == len(changed_columns_names))
     for column_for_ch, ch_column in zip(columns_for_change_names, changed_columns_names):
         df[ch_column] = df[column_for_ch].apply(lambda tx: texts_lemmatize([tx]))
@@ -144,18 +134,13 @@ if __name__ == "__main__":
     data_rout = r'./data'
     models_rout = r'./models'
 
-    with open(os.path.join(models_rout, "fast_answrs","include_and_model.pickle"), "br") as f:
+    with open(os.path.join(models_rout, "fast_answrs","bss_include_and_model.pickle"), "br") as f:
         model = pickle.load(f)
     
     ld = Loader(model)
 
     print(ld.application_field)
 
-    ab = AbstractLoader()
-    print(ab)
-    print(ab.application_field)
-    ab.application_field = "я помню чудное..."
-    print(ab.application_field)
 
    
     
