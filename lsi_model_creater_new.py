@@ -1,5 +1,8 @@
 import os, pickle
 import pandas as pd
+from texts_processors import TokenizerApply
+from utility import Loader
+
 
 # загрузка файлов с данными:
 questions_rout = r'/home/alexey/big/data/fast_answers'
@@ -23,25 +26,32 @@ print(train_df.shape)
 """
 # создание простейшей модели для токенизации
 model = {"model_name": "simplest_model",
-        "model_type" : "simple_tokenizer",
+        "model_type": "simple_tokenizer",
         "etalons": {
         "texts": [],
         "coeff": [],
         "tags": []},
         "lingvo": [{"synonyms": [[]], "tokenize": False},
-        {"ngrams" : [[]], "tokenize": False},
-        {"stopwords" : [[]], "tokenize": False},
-        {"workwords" : [[]], "tokenize": False}],
+        {"ngrams": [[]], "tokenize": False},
+        {"stopwords": [[]], "tokenize": False},
+        {"workwords": [[]], "tokenize": False}],
         "classificator_algorithms": {},
         "texts_algorithms": {},
         "tokenizer": "SimpleTokenizer"}
 
 with open(os.path.join(models_rout, "simplest_model.pickle"), "bw") as f:
     pickle.dump(model, f)
-
 """
 
+with open(os.path.join(models_rout, "simplest_model.pickle"), "br") as f:
+    model = pickle.load(f)
 
+tzapl = TokenizerApply(Loader(model))
+# tx = "вчера нам пожелали доброго вечера 345 раз"
+
+tz_txs = tzapl.texts_processing(train_df["words"])
+print(tz_txs[:10])
+print(len(tz_txs))
 
 # подготовка списка синонимов:
 """

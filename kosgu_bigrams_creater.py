@@ -1,5 +1,8 @@
 import os, pickle
 import pandas as pd
+from texts_processors import TokenizerApply
+from utility import Loader
+from lingv_functions import bigrams_dictionary_create
 
 # загрузка файлов с данными:
 questions_rout = r'/home/alexey/big/data/fast_answers'
@@ -7,15 +10,15 @@ data_rout = r'./data'
 models_rout = r'./models'
 
 quests_df = pd.read_csv(os.path.join(questions_rout, "gf_request.csv"), header=None)
-quests50th_df = pd.DataFrame(quests_df[0].sample(50000))
-quests50th_df.rename(columns={0: "words"}, inplace=True)
-print(quests50th_df[:100])
+quests_df = pd.DataFrame(quests_df[0].sample(100000))
+quests_df.rename(columns={0: "words"}, inplace=True)
+print(quests_df[:100])
 
 etalons_df = pd.read_csv(os.path.join(data_rout, "kosgu_data", "lingv_rules.csv"))
 print(etalons_df["words"][:100])
 print(etalons_df.shape)
 
-train_df = pd.DataFrame(pd.concat([quests50th_df["words"], etalons_df["words"]], axis=0))
+train_df = pd.DataFrame(pd.concat([quests_df["words"], etalons_df["words"]], axis=0))
 print('\n', train_df)
 print(train_df.shape)
 
@@ -38,10 +41,27 @@ model = {"model_name": "simplest_model",
 
 with open(os.path.join(models_rout, "simplest_model.pickle"), "bw") as f:
     pickle.dump(model, f)
-
 """
 
+with open(os.path.join(models_rout, "simplest_model.pickle"), "br") as f:
+    model = pickle.load(f)
 
+tzapl = TokenizerApply(Loader(model))
+# tx = "вчера нам пожелали доброго вечера 345 раз"
+
+tz_txs = tzapl.texts_processing(train_df["words"])
+print(tz_txs[:10])
+print(len(tz_txs))
+
+bgrm_dict_candidates_df = bigrams_dictionary_create(tz_txs)
+print(bgrm_dict_candidates_df)
+
+# bgrm_dict_df = bgrm_dict_candidates_df[(bgrm_dict_candidates_df["quantity"] > 5)
+#                                        & bgrm_dict_candidates_df["estimate"] > 1.1]
+
+print(bgrm_dict_candidates_df)
+
+bgrm_dict_candidates_df.to_csv(os.path.join(data_rout, "kosgu_data", "ngrams.csv"))
 
 # подготовка списка синонимов:
 """
